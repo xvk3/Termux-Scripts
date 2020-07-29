@@ -1,61 +1,81 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
+# Path to unprocessed videos
 path="/data/data/com.termux/files/home/downloads/clips/"
+
+# Path to processed videos
 npath="/data/data/com.termux/files/home/downloads/rnclips/"
 
-catagories="Short,Medium,Long,Perfect Block,Backstab,Riposte,Weapon Swap,Good Play"
+# List of possible catagories
+catagories="Short,Medium,Long,Perfect Block,Backstab,Riposte,Escape,Weapon Swap,Chain,Good Play,Funny"
 
+# Output filename
 renamed=""
 
 function play {
-
   cd $path
-  file=$(find . | shuf -n 1)
+  file=$(find *.mp4 | shuf -n 1)
   echo $file
-  termux-open "${path}${file:2}"
+  termux-open "${path}${file}"
+  # TODO is there a better way to wait for the video to finish before continuing?
+  echo "PRESS ENTER TO CONTINUE"
   read
-
 }
 
 function catagorise {
-
   res=$(termux-dialog checkbox -t "Select Catagories" -v "$catagories")
   selected=$(echo ${res} | jq -r ".values[].text")
   renamed=${renamed}${selected}
 }
 
 function comment {
-
   comment=$(termux-dialog text -t "Enter Comment" | jq -r ".text")
-  echo $comment
-  renamed=${renamed}_${comment}
+  echo "comment = ${comment}"
+  if [ -n "$comment" ]; then
+    renamed=${renamed}_${comment}
+  fi
 }
 
 function verify {
 
-  # Convert to underscores
+  # Convert spaces to underscores
   renamed=$(echo $renamed | tr " " "_")
 
   # Add extension
   ext=$(echo $file | grep -Po "\.[^\.]+$")
-  echo $ext
+  renamed=${renamed}$(echo $file | grep -Po "\.[^\.]+$")
 
-  renamed=${renamed}${ext}
-  echo $renamed
-
+  # Confirm filename
   res=$(termux-dialog confirm -i "${renamed}" | jq ".code")
 
   case $res in
     0)
-      echo "moving"
+      echo "Moving"
       ;;
     1)
-      echo "exiting"
+      echo "Exiting"
+      exit 0
       ;;
     *)
-      echo "err"
+      echo "Verification Error"
+      exit 2
       ;;
   esac
+
+}
+
+function move {
+
+  testing=${renamed}
+  while [[ -f "${npath}${testing}" ]]
+  do
+    echo "file already exists"
+    testing=${renamed}$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c10)
+  done
+  echo $renamed
+  echo $testing
+  echo "mv '${path}${file}' '${npath}${testing}'"
+  mv "${path}${file}" "${npath}${testing}"
 
 }
 
@@ -72,22 +92,25 @@ case $opt in
     catagorise
     comment
     verify
-    #mv "${path}${file}" "${npath}${renamed}
+    move
+    #mv "${path}${file}" "${npath}${renamed}"
     # verify move?
     # crc?
     # upload?
+    exit 0
     ;;
   1)
     echo "Delete"
-    echo "rm '${path}${file:2}'"
+    echo "rm '${path}${file}'"
     #rm "${path}${file:2}"
+    exit 0
     ;;
   2)
     echo "Cancel"
     exit 0
     ;;
   *)
-    echo "err"
+    echo "Error"
     exit 1
     ;;
 esac

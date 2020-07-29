@@ -5,7 +5,8 @@
 Bash script to more easily and quickly watch a video and then choose to either rename or delete it
 
 - [ ] Option to upload renamed video
-- [ ] Prevent duplicate names
+- [x] Prevent duplicate names (append random string)
+-- [ ] Keep extension after random string
 - [ ] Continue to review videos util user exits
 - [ ] Impement an alternative to the `read` command preventing Termux-API from appearing during the video
 
