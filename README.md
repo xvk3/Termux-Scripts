@@ -9,6 +9,7 @@ Bash script to more easily and quickly watch a video and then choose to either r
 -- [ ] Keep extension after random string
 - [ ] Continue to review videos util user exits
 - [ ] Impement an alternative to the `read` command preventing Termux-API from appearing during the video
+- [ ] Split the `termux-dialog` commands with `jq` to prevent errors
 
 #### luip.sh ####
 
